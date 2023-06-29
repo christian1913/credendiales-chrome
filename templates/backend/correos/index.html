@@ -1,0 +1,283 @@
+{% extends "backend/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="titleOptions">
+    <h1 class="sectionTitle uppercase">grupos | {{ datos.0.grupo }}</h1>
+    <button class="addNewItem" onclick="toggleModal('añadir-correo')">Añadir correo</button>
+</div>
+
+{% for datos_correo in datos %}
+    <div class="box">
+        <div class="box-header">
+            <div class="box-header-info">
+                <div><img class="mail-icon" src="{% static 'images/frontend/icons/mail.svg' %}"></div>
+                <div><h6 class="orange email-text">{{ datos_correo.correo.correo }}</h6></div>
+            </div>
+            <div>
+                <!--button change group -->
+                {% if datos_correo.grupos|length > 0 %}
+                <button onclick="showList('clientsList{{datos_correo.correo.id}}')" class="button blue-btn buttonSelector">
+                    Cambiar grupo
+                    <ul class="inactive filterList emailDepartmentList" id="clientsList{{datos_correo.correo.id}}">
+                        {% for d in datos_correo.grupos %}
+                            <form method="POST" action="{% url 'correos-receptores' id=d.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="id-correo" value="{{ datos_correo.correo.id }}">
+                                <input type="hidden" name="id-grupo" value="{{ d.id }}">
+                                <input type="hidden" name="instruccion" value="cambiar-correo">
+                                <li>
+                                    <div class="itemList">
+                                        <input type="submit" value="{{ d.nombre }}"/>
+                                    </div>
+                                </li>
+                            </form>
+                        {% endfor %}
+                    </ul>
+                </button>
+                {% endif %}
+                <!--button send-->
+                <button onclick="toggleModal('enviar{{datos_correo.correo.id}}')" class="button blue-btn"><h6>Enviar correo</h6></button> 
+                <!--button delete-->
+                <button onclick="toggleModal('delete{{datos_correo.correo.id}}')" class="button red-btn"><h6>Eliminar</h6></button>
+            </div>
+        </div>
+        <div class="box-body box-body-left">
+            <div class="pc-box">
+                <div>
+                    <!--popup button delete-->
+                    <div id="delete{{datos_correo.correo.id}}" class="modal popupContentWrapper">
+                        <div class="popup-content">
+                            <span onclick="toggleModal('delete{{datos_correo.correo.id}}')" class="close">&times;</span>
+                            <form action="{% url 'correos' id=datos_correo.grupo_id %}" method="post" style="text-align: center;">
+                                <h5>Introduce "eliminar" para confirmar la eliminación del correo <span class="orange">{{ datos_correo.correo.correo }}</span>:</h5>
+                                <div>
+                                    {% csrf_token %}
+                                    <input autocomplete="on" name="instruccion" id="instruccion" value="eliminar-correo" type="hidden">
+                                    <input autocomplete="on" name="id" id="id" value="{{ datos_correo.correo.id }}" type="hidden">
+                                    <input type="text" class="Before-FS" required="True" autocomplete="off" name="eliminar">
+                                    <input type="submit" class="submit" value="Eliminar">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!--popup button send-->
+                    <div id="enviar{{datos_correo.correo.id}}" class="modal popupContentWrapper">
+                        <div class="popup-content">
+                            <span onclick="toggleModal('enviar{{datos_correo.correo.id}}')" class="close">&times;</span>
+                            <form action="{% url 'auditar' %}" method="post" style="text-align: center;">
+                                <h5>Introduce "enviar" para enviar un correo a <span class="orange">{{ datos_correo.correo.correo }}</span>:</h5>
+                                <div>
+                                    {% csrf_token %}
+                                    <input autocomplete="on" name="instruccion" id="instruccion" value="enviar-correo" type="hidden">
+                                    <input autocomplete="on" name="id" id="id" value="{{ datos_correo.correo.id }}" type="hidden">
+                                    <input type="text" name="enviar">
+                                    <select name="plantilla">
+                                        {% for plantilla in datos_correo.plantillas %}
+                                            <option value="{{ plantilla.id }}">{{ plantilla.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <input type="submit" class="submit" value="Enviar">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="pc-options-box-{{ forloop.counter }}" class="pc-options-box">
+                {% for enviado in datos_correo.enviados %}
+                    {% if enviado.enviado.estatus %}
+                        <div class="table-box" id="table-box-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                            <h6 style="justify-content: center;" class="toggleTable" onclick="toggleTable('credenciales-{{ forloop.parentloop.counter }}-{{ forloop.counter }}')">Fecha de envío: {{ enviado.enviado.fecha_envio }}, Plantilla: {{ enviado.enviado.plantilla.nombre }} <span class="arrow">&#x25BC;</span></h6>
+                            <div class="tabla-container" id="credenciales-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" style="display: none;">
+                                <table class="tabla-credenciales">
+                                <tbody>
+                                    <tr>
+                                        <th>Fecha envío</th>
+                                        <td>{{ enviado.enviado.fecha_envio }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Plantilla</th>
+                                        <td >{{ enviado.enviado.plantilla.nombre }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Fecha apertura</th>
+                                        <td>{{ enviado.estatus_mail.fecha }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>IP</th>
+                                        <td>{{ enviado.estatus_web.ip }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>País</th>
+                                        <td>{{ enviado.estatus_web.pais }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Idioma</th>
+                                        <td>{{ enviado.estatus_web.idioma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Fecha Web</th>
+                                        <td>{{ enviado.estatus_web.fecha }}</td>
+                                    </tr>
+
+
+                                    <tr>
+                                        <th>IP Dispositivo</th>
+                                        <td>{{ enviado.estatus_pc.ip }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>País</th>
+                                        <td>{{ enviado.estatus_pc.pais }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Fecha ejecución</th>
+                                        <td>{{ enviado.estatus_pc.fecha }}</td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                            <!--button send-->
+                            <div class="button-container">
+                                {% if enviado.estatus_pc.fecha != None %}
+                                    <a href="{% url 'acceso' id=enviado.enviado.id %}"><button class="button blue-btn"><h6>Acceso</h6></button></a>
+                                {% endif %}
+                                <button onclick="toggleModal('eliminar-entrada-{{ enviado.enviado.id }}')" class="button blue-btn"><h6>Eliminar entrada</h6></button>
+                            </div>
+                        </div>
+
+                    {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+    <div id="añadir-correo" class="modal popupContentWrapper">
+        <div class="popup-content">
+            <span onclick="toggleModal('añadir-correo')" class="close">&times;</span>
+            <form action="{% url 'correos' id=datos_correo.grupo_id %}" method="post" style="text-align: center;">
+                <h5>Escriba el nombre del correo que desea añadir al grupo:<span class="orange">{{ datos_correo.grupo }}</span>:</h5>
+                <div>
+                    {% csrf_token %}
+                    <input autocomplete="on" name="instruccion" id="instruccion" value="añadir-correo" type="hidden">
+                    <input type="hidden" name="grupo" value="{{ datos_correo.grupo_id }}">
+                    <input autocomplete="on" name="id" id="id" value="all" type="hidden">
+                    <input type="text" name="correo">
+                    <input type="submit" class="submit" value="Añadir">
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% for enviado in datos_correo.enviados %}
+
+    <!-- Pop-up "Eliminar entrada" -->
+    <div id="eliminar-entrada-{{ enviado.enviado.id }}" class="modal popupContentWrapper">
+        <div class="popup-content">
+            <span onclick="toggleModal('eliminar-entrada-{{ enviado.enviado.id }}')" class="close">&times;</span>
+            <form action="{% url 'correos' id=datos_correo.grupo_id %}" method="post" style="text-align: center;">
+                <h5>Introduce "eliminar" para confirmar la eliminación del registro :</h5>
+                <div>
+                    {% csrf_token %}
+                    <input autocomplete="on" name="instruccion" id="instruccion" value="eliminar-registro" type="hidden">
+                    <input autocomplete="on" name="id" id="id" value="{{ enviado.enviado.id }}" type="hidden">
+                    <input type="text" class="Before-FS" required="True" autocomplete="off" name="eliminar">
+                    <input type="submit" class="submit" value="Eliminar">
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    {% endfor %}
+{% endfor %}
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("click", function(event) {
+        const $trigger = document.querySelectorAll(".buttonSelector");
+        let clickedOutside = true;
+        $trigger.forEach(element => {
+            if (element === event.target || element.contains(event.target)) {
+                clickedOutside = false;
+            }
+        });
+        if (clickedOutside) {
+            const $dropdowns = document.querySelectorAll(".filterList");
+            $dropdowns.forEach(element => {
+                if (element.classList.contains("active")) {
+                    element.classList.remove("active");
+                    element.classList.add("inactive");
+                }
+            });
+        }
+    });
+
+    document.addEventListener("click", function(event) {
+        const $popups = document.querySelectorAll(".popupContentWrapper-acceso");
+        $popups.forEach(popup => {
+            if (popup.contains(event.target)) {
+                return;
+            }
+            if (popup.style.display === "block") {
+                toggleModal(popup.id);
+            }
+        });
+    });
+
+
+    const modals = document.querySelectorAll(".modal-acceso");
+    modals.forEach(modal => {
+        updateModal(modal.id);
+    });
+
+});
+
+function updateModal(modalId) {
+    const pageElement = document.getElementById(`page-${modalId}`);
+    const directoriosElement = document.getElementById(`directorios-${modalId}`);
+    const page = Number(pageElement.textContent);
+
+    for (let i = 0; i < directoriosElement.children.length; i++) {
+        if (i >= (page - 1) * 10 && i < page * 10) {
+            directoriosElement.children[i].style.display = 'flex';
+        } else {
+            directoriosElement.children[i].style.display = 'none';
+        }
+    }
+}
+
+function toggleTable(tableId) {
+    const tableBox = document.getElementById(`table-box-${tableId.split('-')[1]}-${tableId.split('-')[2]}`);
+    const tableContainer = document.getElementById(tableId).parentNode;
+    const table = document.getElementById(tableId);
+    const buttons = tableContainer.querySelector(".button-container");
+    if (table.style.display === "none") {
+        table.style.display = "table";
+        buttons.style.display = "block";
+        tableBox.classList.add('active');
+    } else {
+        table.style.display = "none";
+        buttons.style.display = "none";
+        tableBox.classList.remove('active');
+    }
+}
+
+function toggleModal(modalId) {
+    const modal = document.getElementById(modalId);
+
+    if (modal.style.display === "block") {
+        modal.style.display = "none";
+    } else {
+        modal.style.display = "block";
+    }
+}
+
+</script>
+
+
+{% endblock %}
