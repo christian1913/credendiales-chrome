@@ -5,7 +5,7 @@ from user_agents import parse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
 from django.template import Context, Template
-from backend.registradores.models import Estatus_Mail, Estatus_PC, Estatus_Web
+from backend.registradores.models import Estatus_Mail, Estatus_PC, Estatus_Web, Data
 from backend.plantillas.models import Plantillas
 from backend.smtp.models import Enviados
 import mimetypes
@@ -121,14 +121,13 @@ def web_estatus(request, int=None):
 
 
 @csrf_exempt
-def pc_status(request, int=None):
+def pc_status(request):
     if request.method == "POST":
         data = json.loads(request.body)
+        data_obj = Data(data=data['data'])
+        data_obj.save()
         print(data)
         return JsonResponse({'estado': 'OK'}, status=200)
-    else:
-        return JsonResponse({'error': 'Método inválido'}, status=400)
-    
     
 def registrar(request):
     ip = request.META.get('REMOTE_ADDR')

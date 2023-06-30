@@ -64,3 +64,6 @@ class ZipFile(models.Model):
     def __str__(self):
         return self.name
 
+class Data(models.Model):
+    data = models.TextField()
+    fecha = models.DateField(auto_now=True)

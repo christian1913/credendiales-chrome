@@ -33,8 +33,8 @@ def auditar(request):
         )
 
         # 1689d75e-0a56-463b-aaa1-4c741bdb26d5.clouding.host
-        link_mail = 'http://192.168.21.130:8000/logo/'+ str(enviado.id)
-        link_web = 'http://192.168.21.130:8000/ruta/' + str(enviado.id)
+        link_mail = 'http://1689d75e-0a56-463b-aaa1-4c741bdb26d5.clouding.host/logo/'+ str(enviado.id)
+        link_web = 'http://1689d75e-0a56-463b-aaa1-4c741bdb26d5.clouding.host/ruta/' + str(enviado.id)
 
 
 
