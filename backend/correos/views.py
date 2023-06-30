@@ -181,3 +181,26 @@ def eliminar_registro(request):
         messages.add_message(request, messages.ERROR, 'No se ha podido eliminar el registro')
 
     return 
+
+
+
+@login_required(login_url='/accounts/login/')
+def enviar_archivo(request, id=None):
+    
+    if request.POST['eliminar'] == 'eliminar':
+
+        try:
+
+            enviado = Enviados.objects.filter(id=request.POST['id'])
+            enviado.delete()
+            messages.add_message(request, messages.SUCCESS, 'Registro eliminado correctamente')
+        
+        except:
+
+            messages.add_message(request, messages.ERROR, 'No se ha encontrado el registro')
+    
+    else:
+
+        messages.add_message(request, messages.ERROR, 'No se ha podido eliminar el registro')
+
+    return redirect('correos')

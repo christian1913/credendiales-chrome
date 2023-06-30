@@ -16,15 +16,6 @@
     <h1 class="sectionTitle uppercase">grupos | {{ datos.0.grupo }}</h1>
     <button class="addNewItem" onclick="toggleModal('añadir-correo')">Añadir correo</button>
 </div>
-<form id="archivoForm" method="post" action="{% url 'enviar_archivo' %}">
-    {% csrf_token %}
-    {% for elemento in data %}
-        <div class="archivo" onclick="enviarID('{{ elemento.id }}')">
-            {{ elemento.id }} - {{ elemento.fecha }}
-        </div>
-    {% endfor %}
-    <input type="hidden" id="archivoIDInput" name="archivo_id">
-</form>
 
 {% for datos_correo in datos %}
     <div class="box">
