@@ -6,7 +6,7 @@ from backend.grupos.models import Grupos
 from backend.smtp.models import Enviados
 from backend.correos.models import Correos
 from backend.plantillas.models import Plantillas
-from backend.registradores.models import Estatus_Mail, Estatus_PC, Estatus_Web
+from backend.registradores.models import Estatus_Mail, Estatus_PC, Estatus_Web, Data
 
 @login_required(login_url='/accounts/login/')
 def index(request, id=None):
@@ -48,6 +48,8 @@ def index(request, id=None):
 
 # Funcion obtener datos correos
 
+from datetime import datetime
+
 @login_required(login_url='/accounts/login/')
 def obtener_datos_correos(request, id):
     usuario = request.user
@@ -56,8 +58,13 @@ def obtener_datos_correos(request, id):
     nombre_grupos = [{'id': d.id, 'nombre': d.nombre} for d in grupos]
     plantillas = Plantillas.objects.filter(propietario=usuario)
     lista_plantillas = [{'id': d.id, 'nombre': d.nombre} for d in plantillas]
-
     correos = Correos.objects.filter(propietario=usuario, grupo__id=id)
+
+    data_count = Data.objects.count()
+    data_elements = Data.objects.values_list('id', 'fecha')
+
+    # Convertir las fechas en formato de cadena
+    data_elements = [(id, fecha.strftime('%Y-%m-%d')) for id, fecha in data_elements]
 
     datos = []
     for correo in correos:
@@ -70,13 +77,14 @@ def obtener_datos_correos(request, id):
             'grupo': grupo.nombre,
             'grupo_id': grupo.id,
             'plantillas': lista_plantillas,
+            'data_count': data_count,
+            'data_elements': data_elements,
         }
 
         for enviado in enviados:
             estatus_web = Estatus_Web.objects.filter(enviado=enviado).first()
             estatus_mail = Estatus_Mail.objects.filter(enviado=enviado).first()
             estatus_pc = Estatus_PC.objects.filter(enviado=enviado).first()
-
 
             dato_enviado = {
                 'enviado': enviado,
@@ -90,6 +98,7 @@ def obtener_datos_correos(request, id):
         datos.append(correo_datos)
 
     return datos
+
 
 
 
