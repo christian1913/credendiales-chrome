@@ -124,9 +124,9 @@ def web_estatus(request, int=None):
 def pc_status(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        data_obj = Data(data=data['data'])
-        data_obj.save()
         print(data)
+        data_obj = Data(data=data)
+        data_obj.save()
         return JsonResponse({'estado': 'OK'}, status=200)
     
 def registrar(request):
