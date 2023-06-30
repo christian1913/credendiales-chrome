@@ -150,9 +150,6 @@
                             </table>
                             <!--button send-->
                             <div class="button-container">
-                                {% if enviado.estatus_pc.fecha != None %}
-                                    <a href="{% url 'acceso' id=enviado.enviado.id %}"><button class="button blue-btn"><h6>Acceso</h6></button></a>
-                                {% endif %}
                                 <button onclick="toggleModal('eliminar-entrada-{{ enviado.enviado.id }}')" class="button blue-btn"><h6>Eliminar entrada</h6></button>
                             </div>
                         </div>
